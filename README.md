@@ -13,7 +13,7 @@ The following diagram illustrate the whole pipeline. There are three major compo
 
 
 ### Encoders
-You can find the encoders under ```./src/encoder```
+You can find the encoders under ```./src/encoder```, both encoders are written in *Pytorch*, you can follow the [instruction](http://pytorch.org) to install it.
 
 #### Recurrent autoencoder
 The recurrent autoencoder regards the entire clinical course for a patient as a sample so that each sample contains multiple patient observations. In our case, for each observation, there are 45 features, and the encoder maps them into a state representation with length 128, and the decoder reconstruct the original features for each observation based on this representation. For training, the reconstruction loss is measured by MSE, and the metric used is R-square. To train it with your own samples, just call
@@ -35,7 +35,7 @@ Unlike the recurrent autoencoder, sparse autoencoder does not consider the tempo
 
 ### Experts
 
-In our study, there are three experts used for policy learning. Knernel is a neighor-based policy learning expert, DQN is the model-free policy learning expert, and MoE is a mix of kernel and DQN.
+In our study, there are three experts used for policy learning. Knernel is a neighor-based policy learning expert, DQN is the model-free policy learning expert, and MoE is a mix of kernel and DQN.  
 
 #### Kernel
 The Figure below illustrates the what kernel expert does. 
@@ -51,7 +51,7 @@ Note that here kernel has two tasks. 1) Deriving kernel policy; 2) Estimate orig
 
 #### DQN
 
-The DQN expert is a Dueling Double Deep Q-network. It is written in ```./src/expert/qnetwork.py``` To run it, command 
+The DQN expert is a Dueling Double Deep Q-network. It is written in ```./src/expert/qnetwork.py``` using *Tensorflow*. To run it, command 
 
 ```
 python qnetwork.py 
@@ -73,10 +73,36 @@ dqn_df['iv_input'] = discrete action index for iv usage
 dqn_df['reward'] = in our case, negative log-odds mortality prob.
 ```
 
+We solve the *V* and *Q* for physician policies by slightly modify the qnetwork. The DQN's Q-function is learned during training by taking **argmax** . Since the kernel and physician expert policies are not determined via RL, they do not have associated *V* and *Q* functions, and must therefore be estimated in order to calculate the WDR (see last section). We used the DQN's Q-function, using the **mean**  operation rather than **argmax** in order to derive the equivalent physician policy.
+
+The physician policies Q can be obtained in the same fashion. Just run
+
+```
+python qnetwork_solve_phy_VQ.py 
+  --num_steps 200000 
+  --input_train path/to/trainset 
+  --input_test path/to/testset 
+  --output_train_meta path/to/store/losses/and/mean/Q/values
+  --output_trainset path/to/store/training/results(q-values, actions)
+  --output_testset path/to/store/testing/results(q-values, actions)
+```
+
+using the same input train/test sets. Then call, 
+
+```
+dqn_res_train = pkl.load(open(path/to/store/training/results,'rb')) # a tuple (Q, actions)
+phy_train_Q = dqn_res_train[0] # (sample_size, num_actions)
+phy_test_V = phy_train_Q.max(axis = 1)
+```
+
 #### MoE
 
-MoE combines the policies from kernel and DQN organically. It is trained to select expert for treatment per patient per state based on current physiological condition of the patient.
+MoE combines the policies from kernel and DQN organically. It is trained to select expert for treatment per patient per state based on current physiological condition (characteristics) of the patient.
 
+<img src="/moe.png" width="300">
 
+The MoE is trained to optimize the WDR estimates (see last section) for the discount expected return. The MoE is implemented in ```./src/expert/MoE.ipynb``` using *Pytorch*. More details can be found in the jupyter notebook.
 
 ### WDR estimator
+
+The weighted doubly robust (WDR) estimator is widely used for off-policy evaluation in RL. You can find its implementation in ```./src/expert/MoE.ipynb```. WDR is a very complicated function with many local maxima. We optimize it through large amount of simulations with random initial points, but the global maxima is still not guaranteed. 
