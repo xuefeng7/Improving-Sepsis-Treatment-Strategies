@@ -38,9 +38,45 @@ Unlike the recurrent autoencoder, sparse autoencoder does not consider the tempo
 In our study, there are three experts used for policy learning. Knernel is a neighor-based policy learning expert, DQN is the model-free policy learning expert, and MoE is a mix of kernel and DQN.
 
 #### Kernel
-The Figure below illustrates the what kernel expert does. The nearest neighbors can be found based on either recurrent state representation or non-recurrent one.
+The Figure below illustrates the what kernel expert does. 
+
+<img src="/kernel.png" width="500">
+
+The circle in the left shows an example of the neighborhoods of a new state ```s```, red and green marks the mortality and surviving states respectively, and each of these states is associated with a physician action ```A_i```
+
+The nearest neighbors can be found based on either recurrent state representation or non-recurrent one. The kernel expert is implemented in ```./src/expert/kernel.ipynb```
+
+Note that here kernel has two tasks. 1) Deriving kernel policy; 2) Estimate original physician policies. For task 1), kernel expert finds nearest neighboring states (from trainset) for each state in the trainset. For state in testset, kernel also finds nearest neighboring states (from trainset) for it. For task 2), kernel finds nearest neighboring states (from trainset) for each state in the trainset; however, please be careful that kernel finds nearest neighboring states (from testset) for each state in the testset. More details can be found in the ```.ipynb```.
+
 
 #### DQN
+
+The DQN expert is a Dueling Double Deep Q-network. It is written in ```./src/expert/qnetwork.py``` To run it, command 
+
+```
+python qnetwork.py 
+  --num_steps 200000 
+  --input_train path/to/trainset 
+  --input_test path/to/testset 
+  --output_train_meta path/to/store/losses/and/mean/Q/values
+  --output_trainset path/to/store/training/results(q-values, actions)
+  --output_testset path/to/store/testing/results(q-values, actions)
+```
+
+Please note that the input train/test sets should have the following format, you can generate them via the code in ```generate_dqn_dataset.ipynb```
+
+```
+dqn_df = pd.DataFrame(embeddings) # all state representations (sample_size, 128)
+dqn_df['icustayid'] = ICU stay id for each patient
+dqn_df['vaso_input'] = discrete action index for vaso usage
+dqn_df['iv_input'] = discrete action index for iv usage
+dqn_df['reward'] = in our case, negative log-odds mortality prob.
+```
+
 #### MoE
+
+MoE combines the policies from kernel and DQN organically. It is trained to select expert for treatment per patient per state based on current physiological condition of the patient.
+
+
 
 ### WDR estimator
