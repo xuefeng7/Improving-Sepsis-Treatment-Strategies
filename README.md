@@ -6,11 +6,12 @@ Sepsis is the leading cause of mortality in the ICU.  It is challenging to manag
 
 ### Data Preprocessing
 
+The Data preprocessing code can found at ```./src/preprocessing/data_pre_processing.ipynb```.
+
 ### Pipeline
 The following diagram illustrate the whole pipeline. There are three major components, they are patient **encoder**, **expert policies derivation**, and **policy evaluation**.
 
 <img src="/pipeline.png" width="500">
-
 
 ### Encoders
 You can find the encoders under ```./src/encoder```, both encoders are written in *Pytorch*, you can follow the [instruction](http://pytorch.org) to install it.
@@ -48,12 +49,11 @@ The nearest neighbors can be found based on either recurrent state representatio
 
 Note that here kernel has two tasks. 1) Deriving kernel policy; 2) Estimate original physician policies. For task 1), kernel expert finds nearest neighboring states (from trainset) for each state in the trainset. For state in testset, kernel also finds nearest neighboring states (from trainset) for it. For task 2), kernel finds nearest neighboring states (from trainset) for each state in the trainset; however, please be careful that kernel finds nearest neighboring states (from testset) for each state in the testset. More details can be found in the ```.ipynb```.
 
-
 #### DQN
 
 ##### Intermediate Rewards(IR)
 
-To stably train the DQN experts and improve the policy learning quality, we formulate a way to compute IR. More specificaly, we use the change in mortality probabilities of state transistion as the IR. To obtain it, run the code in ```./src/expert/rewards/IR.ipynb```, this ```.ipynb``` depends on the files under ```./src/expert/rewards/nn```, you can even customize the network architecture by modifying those files accordingly.
+To stably train the DQN experts and improve the policy learning quality, we formulate a way to compute IR. More specificaly, we use the change in mortality probabilities of state transistion as the IR. To obtain it, run the code in ```./src/expert/rewards/IR.ipynb```, this ```.ipynb``` depends on the files under ```./src/expert/rewards/nn```, you can even customize the network architecture by modifying those files accordingly. For the task onward, one should append the IR to the preprocessed dataframe. The 'path/to/trainset' or 'path/to/testset' commented in the code requires the IR column.
 
 ##### DQN expert training
 
@@ -78,7 +78,6 @@ dqn_df['vaso_input'] = discrete action index for vaso usage
 dqn_df['iv_input'] = discrete action index for iv usage
 dqn_df['reward'] = in our case, negative log-odds mortality prob.
 ```
-
 We solve the *V* and *Q* for physician policies by slightly modify the qnetwork. The DQN's Q-function is learned during training by taking **argmax** . Since the kernel and physician expert policies are not determined via RL, they do not have associated *V* and *Q* functions, and must therefore be estimated in order to calculate the WDR (see last section). We used the DQN's Q-function, using the **mean**  operation rather than **argmax** in order to derive the equivalent physician policy.
 
 The physician policies Q can be obtained in the same fashion. Just run
