@@ -51,6 +51,12 @@ Note that here kernel has two tasks. 1) Deriving kernel policy; 2) Estimate orig
 
 #### DQN
 
+##### Intermediate Rewards(IR)
+
+To stably train the DQN experts and improve the policy learning quality, we formulate a way to compute IR. More specificaly, we use the change in mortality probabilities of state transistion as the IR. To obtain it, run the code in ```./src/expert/rewards/IR.ipynb```, this ```.ipynb``` depends on the files under ```./src/expert/rewards/nn```, you can even customize the network architecture by modifying those files accordingly.
+
+##### DQN expert training
+
 The DQN expert is a Dueling Double Deep Q-network. It is written in ```./src/expert/qnetwork.py``` using *Tensorflow*. To run it, command 
 
 ```
