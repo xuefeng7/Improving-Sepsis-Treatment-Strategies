@@ -11,7 +11,7 @@ The Data preprocessing code can found at ```./src/preprocessing/data_pre_process
 ### Pipeline
 The following diagram illustrate the whole pipeline. There are three major components, they are patient **encoder**, **expert policies derivation**, and **policy evaluation**.
 
-<img src="/pipeline.png" width="500">
+<img src="figures/pipeline.png" width="500">
 
 ### Encoders
 You can find the encoders under ```./src/encoder```, both encoders are written in *Pytorch*, you can follow the [instruction](http://pytorch.org) to install it.
@@ -41,7 +41,7 @@ In our study, there are three experts used for policy learning. Knernel is a nei
 #### Kernel
 The Figure below illustrates the what kernel expert does. 
 
-<img src="/kernel.png" width="500">
+<img src="figures/kernel.png" width="500">
 
 The circle in the left shows an example of the neighborhoods of a new state ```s```, red and green marks the mortality and surviving states respectively, and each of these states is associated with a physician action ```A_i```
 
@@ -104,7 +104,7 @@ phy_test_V = phy_train_Q.max(axis = 1)
 
 MoE combines the policies from kernel and DQN organically. It is trained to select expert for treatment per patient per state based on current physiological condition (characteristics) of the patient.
 
-<img src="/moe.png" width="300">
+<img src="figures/moe.png" width="300">
 
 The MoE is trained to optimize the WDR estimates (see last section) for the discount expected return. The MoE is implemented in ```./src/expert/MoE.ipynb``` using *Pytorch*. More details can be found in the jupyter notebook.
 
