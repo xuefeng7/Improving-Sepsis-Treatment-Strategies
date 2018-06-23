@@ -1,6 +1,12 @@
 # Improving-Sepsis-Treatment-Strategies
 This is the code repository for paper "Improving Sepsis Treatment Strategies using Deep Reinforcement Learning and Mixture-of-Experts"
 
+### Reviwer Comments
+- [x] Data in Table 1 clearly show the imbalance ratio of the dataset survivors/nonsurvivors. Imbalanced learning cause bias in the prediction model of the classifiers. However, no comments are provided by the authors on how they have addressed this issue by detailing the use of particular rebalancing method or cost-sensitive learning. 
+- [x] The dataset was split into a fixed 75% training and validation set and a 25% test set." -> authors should use 10-fold cross-validation.
+- [ ] Although the performance of their mixture-of-experts (MoE)method is numerically superior to those of Physician's, Kernel's and DQN as shown in Table 2, it would be good to analyze the significant of such numeric increases. What performance would a random policy produce? Is there a way to measure the significance of the performance differences among these methods? 
+- [ ] The paper does not present any time performance of their method. How long does it take to train this method? Is this training time feasible for devising personalized treatment policies for ICU patients? Both RL and Deep networks are notorious for high training times. 
+
 ### Motivation
 Sepsis is the leading cause of mortality in the ICU.  It is challenging to manage because different patients respond differently to treatment.  Thus, tailoring treatment to the individual patient is essential for the best outcomes.  In this paper, we take steps toward this goal by applying a mixture-of-experts framework to individualize sepsis treatment. The mixture model switches between neighbor-based (kernel) and deep reinforcement learning (DRL) experts depending on patient's current history.  On a large retrospective cohort, this mixture-based approach outperforms physician, kernel only, and DRL-only experts.
 
